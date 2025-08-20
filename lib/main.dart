@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tasky/views/home_view.dart';
+import 'package:tasky/views/main_view.dart';
 import 'package:tasky/views/welcom_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final pref = await SharedPreferences.getInstance();
+  // pref.clear();
   String? username = pref.getString('username');
   runApp(MyApp(username: username));
 }
@@ -23,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: username == null ? WelcomeView() : HomeView(),
+      home: username == null ? WelcomeView() : MainView(),
     );
   }
 }
