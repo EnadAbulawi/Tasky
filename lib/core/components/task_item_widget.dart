@@ -100,6 +100,7 @@ class TaskItemWidget extends StatelessWidget {
                 case TaskItemActionsEnum.delete:
                   await _showAlertDialog(context);
                   onDelete(tasks.id);
+
                   break;
               }
             },
