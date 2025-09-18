@@ -5,10 +5,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tasky/core/services/preferences_manager.dart';
 import 'package:tasky/core/widgets/custom_svg_picture.dart';
 import 'package:tasky/models/task_model.dart';
-import 'package:tasky/views/add_task_view.dart';
-import 'package:tasky/widgets/achived_task_widget.dart';
-import 'package:tasky/widgets/high_priority_task_widget.dart';
-import 'package:tasky/widgets/sliver_task_list_widget.dart';
+import 'package:tasky/features/add_task/add_task_view.dart';
+import 'package:tasky/features/home/components/achived_task_widget.dart';
+import 'package:tasky/features/home/components/high_priority_task_widget.dart';
+import 'package:tasky/features/home/components/sliver_task_list_widget.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
