@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -50,6 +49,7 @@ class _ProfileViewState extends State<ProfileView> {
               children: [
                 Text(
                   'My Profile',
+
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
                 const SizedBox(height: 16),
