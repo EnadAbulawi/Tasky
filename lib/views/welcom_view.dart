@@ -1,9 +1,10 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:snackly/snackly.dart';
-import 'package:tasky/views/home_view.dart';
+import 'package:tasky/core/services/preferences_manager.dart';
+import 'package:tasky/core/widgets/custom_svg_picture.dart';
+import 'package:tasky/core/widgets/custom_text_form_field.dart';
+import 'package:tasky/views/main_view.dart';
 
 class WelcomeView extends StatelessWidget {
   WelcomeView({super.key});
@@ -14,7 +15,7 @@ class WelcomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff181818),
+      // backgroundColor: const Color(0xfff6f7f9),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Form(
@@ -26,15 +27,16 @@ class WelcomeView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SvgPicture.asset(
-                      'assets/images/logo.svg',
-                      width: 42,
+                    CustomSvgPicture.withoutColor(
+                      path: 'assets/images/logo.svg',
                       height: 42,
+                      width: 42,
                     ),
+
                     const SizedBox(width: 16),
                     Text(
                       'Tasky',
-                      style: TextStyle(fontSize: 28, color: Color(0xfffffcfc)),
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                   ],
                 ),
@@ -44,25 +46,25 @@ class WelcomeView extends StatelessWidget {
                   children: [
                     Text(
                       'Welcome To Tasky',
-                      style: TextStyle(fontSize: 24, color: Color(0xfffffcfc)),
+                      style: Theme.of(context).textTheme.displaySmall,
                     ),
                     const SizedBox(width: 8),
-                    SvgPicture.asset(
-                      'assets/images/hands.svg',
-                      width: 24,
-                      height: 24,
+                    CustomSvgPicture.withoutColor(
+                      path: 'assets/images/hands.svg',
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Your productivity journey starts here.',
-                  style: TextStyle(fontSize: 16, color: Color(0xff949494)),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.displaySmall!.copyWith(fontSize: 16),
                 ),
                 const SizedBox(height: 24),
 
-                SvgPicture.asset(
-                  'assets/images/welcome.svg',
+                CustomSvgPicture.withoutColor(
+                  path: 'assets/images/welcome.svg',
                   width: 215,
                   height: 205,
                 ),
@@ -73,44 +75,23 @@ class WelcomeView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
 
                     children: [
-                      Text(
-                        'Full Name',
-                        textAlign: TextAlign.end,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Color(0xfffffcfc),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        onTapOutside: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
+                      const SizedBox(height: 24),
+                      CustomTextFormField(
+                        controller: userNameController,
+                        hintText: 'e.g. Enad Abulawi',
+                        title: 'Full Name',
                         validator: (String? value) {
                           if (value == null || value.trim().isEmpty) {
                             return "Please Enter Your Full Name";
                           }
                           return null;
                         },
-                        controller: userNameController,
-                        style: TextStyle(color: Colors.white),
-                        cursorColor: Colors.white,
-                        decoration: InputDecoration(
-                          filled: true,
-
-                          fillColor: const Color(0xff282828),
-                          hintText: 'e.g. Enad Abulawi',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
                       ),
+
                       const SizedBox(height: 24),
 
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff15b86c),
-                          foregroundColor: Color(0xfffffcfc),
                           fixedSize: Size(
                             MediaQuery.of(context).size.width,
                             50,
@@ -118,17 +99,17 @@ class WelcomeView extends StatelessWidget {
                         ),
                         onPressed: () async {
                           // log(userNameController.text.toString());
-                          final pref = await SharedPreferences.getInstance();
-                          await pref.setString(
-                            'username',
-                            userNameController.value.text,
-                          );
 
                           if (_key.currentState?.validate() ?? false) {
+                            await PreferencesManager().setString(
+                              'username',
+                              userNameController.value.text,
+                            );
+
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const HomeView(),
+                                builder: (context) => const MainView(),
                               ),
                             );
                           } else {
@@ -137,8 +118,6 @@ class WelcomeView extends StatelessWidget {
                               title: 'خطأ',
                               message: "يجب عليك ادخال اسمك الكامل ",
                             );
-
-                            /// !TODO : add snackbar
                           }
                         },
                         child: Text('Let’s Get Started'),

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tasky/core/services/preferences_manager.dart';
+import 'package:tasky/core/widgets/custom_text_form_field.dart';
 import 'package:tasky/models/task_model.dart';
 
 class AddTaskView extends StatefulWidget {
@@ -24,12 +25,8 @@ class _AddTaskViewState extends State<AddTaskView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('New Task', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xff181818),
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      backgroundColor: const Color(0xff181818),
+      appBar: AppBar(title: const Text('New Task')),
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Form(
@@ -42,80 +39,32 @@ class _AddTaskViewState extends State<AddTaskView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Task Name',
-                        style: TextStyle(
-                          color: Color(0xffFFFCFC),
-                          fontWeight: FontWeight.w400,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        onTapOutside: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
+                      CustomTextFormField(
+                        title: 'Task Name',
+                        controller: taskNameController,
+                        hintText: 'Finish UI design for login screen',
                         validator: (String? value) {
                           if (value == null || value.trim().isEmpty) {
                             return "Please Enter Task Name";
                           }
                           return null;
                         },
-                        controller: taskNameController,
-                        style: TextStyle(color: Colors.white),
-                        cursorColor: Colors.white,
-                        decoration: InputDecoration(
-                          filled: true,
+                      ),
 
-                          fillColor: const Color(0xff282828),
-                          hintText: 'Finish UI design for login screen',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
                       const SizedBox(height: 20),
-                      Text(
-                        'Task Description',
-                        style: TextStyle(
-                          color: Color(0xffFFFCFC),
-                          fontWeight: FontWeight.w400,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        onTapOutside: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        // validator: (String? value) {
-                        //   if (value == null || value.trim().isEmpty) {
-                        //     return "Please Enter Task Description";
-                        //   }
-                        //   return null;
-                        // },
+                      CustomTextFormField(
+                        title: 'Task Description',
                         controller: taskDescriptionController,
+                        hintText:
+                            'Finish onboarding UI and hand off to devs by Thursday.',
                         maxLines: 7,
-                        style: TextStyle(color: Colors.white),
-                        cursorColor: Colors.white,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: const Color(0xff282828),
-                          hintText:
-                              'Finish onboarding UI and hand off to devs by Thursday.',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
                       ),
+
                       const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'High Priority',
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
+                          Text('High Priority', style: TextStyle(fontSize: 18)),
 
                           Switch(
                             value: isHighPriority,
@@ -124,7 +73,7 @@ class _AddTaskViewState extends State<AddTaskView> {
                               setState(() {});
                               log(isHighPriority.toString());
                             },
-                            activeTrackColor: Color(0xff15b86c),
+                            // activeTrackColor: Color(0xff15b86c),
                           ),
                         ],
                       ),
@@ -135,13 +84,20 @@ class _AddTaskViewState extends State<AddTaskView> {
 
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff15b86c),
-                  foregroundColor: Color(0xfffffcfc),
                   fixedSize: Size(MediaQuery.of(context).size.width, 50),
                 ),
                 onPressed: () async {
                   if (_key.currentState?.validate() ?? false) {
+                    //check by key {tasks} > String ?
+                    final taskJson = PreferencesManager().getString('task');
+                    List<dynamic> listTasks = [];
+                    if (taskJson != null) {
+                      listTasks = jsonDecode(taskJson);
+                    }
+
                     TaskModel model = TaskModel(
+                      // id: listTasks.length =1 -> 1 + 1,
+                      id: listTasks.length + 1,
                       taskName: taskNameController.text,
                       taskDescription: taskDescriptionController.text,
                       isHighPriority: isHighPriority,
@@ -149,17 +105,11 @@ class _AddTaskViewState extends State<AddTaskView> {
 
                     log(model.toJson().toString());
 
-                    final pref = await SharedPreferences.getInstance();
-                    final taskJson = pref.getString('task');
-                    List<dynamic> listTasks = [];
-                    if (taskJson != null) {
-                      listTasks = jsonDecode(taskJson);
-                    }
                     listTasks.add(model.toJson());
                     final taskEncode = jsonEncode(listTasks);
-                    await pref.setString('task', taskEncode);
+                    await PreferencesManager().setString('task', taskEncode);
 
-                    Navigator.pop(context);
+                    Navigator.of(context).pop(true);
                     // setState(() {});
                   }
                 },

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tasky/views/home_view.dart';
+import 'package:tasky/core/services/preferences_manager.dart';
+import 'package:tasky/core/theme/dark_theme.dart';
+import 'package:tasky/core/theme/light_theme.dart';
+import 'package:tasky/core/theme/theme_controller.dart';
 import 'package:tasky/views/main_view.dart';
 import 'package:tasky/views/welcom_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final pref = await SharedPreferences.getInstance();
-  // pref.clear();
-  String? username = pref.getString('username');
+  await PreferencesManager().init();
+  ThemeController().init();
+
+  // await pref.clear();
+  String? username = PreferencesManager().getString('username');
   runApp(MyApp(username: username));
 }
 
@@ -19,13 +23,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Tasky',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.themeNotifier,
+      builder: (context, ThemeMode themeMode, Widget? child) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Tasky',
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: themeMode,
+        home: username == null ? WelcomeView() : MainView(),
       ),
-      home: username == null ? WelcomeView() : MainView(),
     );
   }
 }

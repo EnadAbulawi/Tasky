@@ -1,12 +1,14 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:math' hide log;
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tasky/core/services/preferences_manager.dart';
+import 'package:tasky/core/widgets/custom_svg_picture.dart';
 import 'package:tasky/models/task_model.dart';
 import 'package:tasky/views/add_task_view.dart';
+import 'package:tasky/widgets/achived_task_widget.dart';
+import 'package:tasky/widgets/high_priority_task_widget.dart';
+import 'package:tasky/widgets/sliver_task_list_widget.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -17,8 +19,13 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   String? username;
+  String? profileImagePath;
   List<TaskModel> task = [];
   bool isCheck = false;
+
+  int totalTasks = 0;
+  int doneTasks = 0;
+  double percent = 0;
 
   @override
   void initState() {
@@ -28,221 +35,161 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _loadUserName() async {
-    final pref = await SharedPreferences.getInstance();
-    username = pref.getString('username');
-
-    setState(() {});
+    setState(() {
+      username = PreferencesManager().getString('username');
+      profileImagePath = PreferencesManager().getString('profile_image');
+    });
   }
 
   void _loadTask() async {
-    final pref = await SharedPreferences.getInstance();
-    final finalTask = pref.getString('task');
+    final finalTask = PreferencesManager().getString('task');
     // log(finalTask.toString());
     if (finalTask != null) {
       final taskAfterDecode = jsonDecode(finalTask) as List<dynamic>;
 
       setState(() {
         task = taskAfterDecode.map((e) => TaskModel.fromJson(e)).toList();
-
-        // task = taskAfterDecode;
+        _calculatePercent();
       });
     }
+  }
 
-    // task = taskAfterDecode;
+  _calculatePercent() {
+    totalTasks = task.length;
+    doneTasks = task.where((e) => e.isDone).length;
+    percent = totalTasks == 0 ? 0 : doneTasks / totalTasks;
+  }
+
+  _doneTasks(bool? value, int? index) async {
+    setState(() {
+      task[index!].isDone = value ?? false;
+      _calculatePercent();
+    });
+
+    final updatedTak = task.map((element) => element.toJson()).toList();
+    await PreferencesManager().setString('task', jsonEncode(updatedTak));
+  }
+
+  _deleteTask(int? id) async {
+    if (id == null) return;
+    setState(() {
+      task.removeWhere((task) => task.id == id);
+    });
+
+    _calculatePercent();
+    final updatedTask = task.map((e) => e.toJson()).toList();
+    await PreferencesManager().setString('task', jsonEncode(updatedTask));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: profileImagePath != null
+                            ? FileImage(File(profileImagePath!))
+                            : AssetImage('assets/images/person.png'),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Good Evening , $username',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(
+                            'One task at a time.One step closer.',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Yuhuu ,Your work Is',
+                    textAlign: TextAlign.start,
+                    style: Theme.of(context).textTheme.displayLarge,
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'almost done !',
+                        style: Theme.of(context).textTheme.displayLarge,
+                      ),
+                      CustomSvgPicture.withoutColor(
+                        path: 'assets/images/hands.svg',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  AchievedTasksWidget(
+                    doneTasks: doneTasks,
+                    totalTasks: totalTasks,
+                    percent: percent,
+                  ),
+                  const SizedBox(height: 8),
+                  HighPriorityTaskWidget(
+                    tasks: task,
+                    onTap: (bool? value, int? index) {
+                      _doneTasks(value, index);
+                    },
+                    refresh: () {
+                      _loadTask();
+                    },
+                  ),
+                  // if (task.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24, bottom: 16),
+                    child: Text(
+                      'My Tasks',
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SliverTaskListWidget(
+              tasks: task,
+              onTap: (bool? value, int? index) {
+                _doneTasks(value, index);
+              },
+              onDelete: (int? id) => _deleteTask(id),
+              onEdit: () => _loadTask(),
+            ),
+          ],
+        ),
+      ),
       floatingActionButton: SizedBox(
         height: 50,
         child: FloatingActionButton.extended(
           onPressed: () async {
-            await Navigator.push(
+            final bool? result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (BuildContext context) => AddTaskView(),
               ),
             );
-            _loadTask();
+
+            if (result != null && result == true) {
+              _loadTask();
+            }
           },
           label: Text('Add New Task'),
           icon: Icon(Icons.add),
-          backgroundColor: Color(0xff15B86C),
-          foregroundColor: Color(0xffffffff),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-      ),
-      backgroundColor: const Color(0xff181818),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage('assets/images/person.png'),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Good Evening , $username',
-                        style: TextStyle(
-                          color: Color(0xfffffcfc),
-                          fontWeight: FontWeight.w400,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'One task at a time.One step closer.',
-                        style: TextStyle(
-                          color: Color(0xffc6c6c6),
-                          fontWeight: FontWeight.w400,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Yuhuu ,Your work Is',
-                textAlign: TextAlign.start,
-                style: TextStyle(color: Color(0xfffffcfc), fontSize: 32),
-              ),
-              Row(
-                children: [
-                  Text(
-                    'almost done !',
-
-                    style: TextStyle(color: Color(0xfffffcfc), fontSize: 32),
-                  ),
-                  SvgPicture.asset('assets/images/hands.svg'),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // if (task.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 24, bottom: 16),
-                child: Text(
-                  'My Tasks',
-                  style: TextStyle(color: Color(0xfffffcfc), fontSize: 20),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.only(bottom: 60),
-                  itemCount: task.length,
-                  shrinkWrap: true,
-                  itemBuilder: (BuildContext context, int index) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: 56,
-                        // alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Color(0xff282828),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Checkbox(
-                              // tristate: true,
-                              value: task[index].isDone,
-                              onChanged: (bool? value) async {
-                                // log(value.toString());
-                                setState(() {
-                                  task[index].isDone = value ?? false;
-                                });
-                                final pref =
-                                    await SharedPreferences.getInstance();
-                                final updatedTak = task
-                                    .map((element) => element.toJson())
-                                    .toList();
-                                pref.setString('task', jsonEncode(updatedTak));
-                              },
-                              activeColor: Color(0xff15B86C),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                            ),
-
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    task[index].taskName,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: task[index].isDone
-                                          ? Color(0xffa0a0a0)
-                                          : Color(0xfffffcfc),
-                                      decoration: task[index].isDone
-                                          ? TextDecoration.lineThrough
-                                          : TextDecoration.none,
-                                      decorationColor: Color(0xffa0a0a0),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    task[index].taskDescription,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: task[index].isDone
-                                          ? Color(0xffa0a0a0)
-                                          : Color(0xfffffcfc),
-                                      decoration: task[index].isDone
-                                          ? TextDecoration.lineThrough
-                                          : TextDecoration.none,
-                                      decorationColor: Color(0xffa0a0a0),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.more_vert_outlined,
-                                color: task[index].isDone
-                                    ? Color(0xffa0a0a0)
-                                    : Color(0xffc6c6c6),
-                              ),
-                              onPressed: () async {
-                                task.removeAt(index);
-                                final pref =
-                                    await SharedPreferences.getInstance();
-                                final updatedTak = task
-                                    .map((element) => element.toJson())
-                                    .toList();
-                                pref.setString('task', jsonEncode(updatedTak));
-                                setState(() {});
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
           ),
         ),
       ),

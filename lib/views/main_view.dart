@@ -24,10 +24,6 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xff181818),
-        type: BottomNavigationBarType.fixed,
-        unselectedItemColor: Color(0xffc6c6c6),
-        selectedItemColor: Color(0xff15B86C),
         currentIndex: _currentIndex,
         onTap: (int? index) {
           setState(() {
@@ -36,48 +32,34 @@ class _MainViewState extends State<MainView> {
         },
         items: [
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/home.svg',
-              colorFilter: ColorFilter.mode(
-                _currentIndex == 0 ? Color(0xff15B86C) : Color(0xffc6c6c6),
-                BlendMode.srcIn,
-              ),
-            ),
+            icon: _BuildSvgPicture('assets/images/home.svg', 0),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/todo.svg',
-              colorFilter: ColorFilter.mode(
-                _currentIndex == 1 ? Color(0xff15B86C) : Color(0xffc6c6c6),
-                BlendMode.srcIn,
-              ),
-            ),
+            icon: _BuildSvgPicture('assets/images/todo.svg', 1),
             label: 'To Do',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/todo_complete.svg',
-              colorFilter: ColorFilter.mode(
-                _currentIndex == 2 ? Color(0xff15B86C) : Color(0xffc6c6c6),
-                BlendMode.srcIn,
-              ),
-            ),
+            icon: _BuildSvgPicture('assets/images/todo_complete.svg', 2),
             label: 'Completed',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/images/profile.svg',
-              colorFilter: ColorFilter.mode(
-                _currentIndex == 3 ? Color(0xff15B86C) : Color(0xffc6c6c6),
-                BlendMode.srcIn,
-              ),
-            ),
+            icon: _BuildSvgPicture('assets/images/profile.svg', 3),
             label: 'Profile',
           ),
         ],
       ),
-      body: _view[_currentIndex],
+      body: SafeArea(child: _view[_currentIndex]),
+    );
+  }
+
+  SvgPicture _BuildSvgPicture(String path, int index) {
+    return SvgPicture.asset(
+      path,
+      colorFilter: ColorFilter.mode(
+        _currentIndex == index ? Color(0xff15B86C) : Color(0xffc6c6c6),
+        BlendMode.srcIn,
+      ),
     );
   }
 }
