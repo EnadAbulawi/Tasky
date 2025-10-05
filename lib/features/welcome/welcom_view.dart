@@ -4,7 +4,7 @@ import 'package:snackly/snackly.dart';
 import 'package:tasky/core/services/preferences_manager.dart';
 import 'package:tasky/core/widgets/custom_svg_picture.dart';
 import 'package:tasky/core/widgets/custom_text_form_field.dart';
-import 'package:tasky/views/main_view.dart';
+import 'package:tasky/features/navigation/main_view.dart';
 
 class WelcomeView extends StatelessWidget {
   WelcomeView({super.key});
