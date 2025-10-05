@@ -13,8 +13,12 @@ class HomeController with ChangeNotifier {
   bool isCheck = false;
 
   int totalTasks = 0;
-  int doneTasks = 0;
+  int totalDoneTasks = 0;
   double percent = 0;
+  // * انشاء كونستركتور للكلاس لانه اول شيء ينادي به الكلاس عند استدعائه هو الكونستركتور
+  HomeController() {
+    init();
+  }
 
   init() {
     loadUserName();
@@ -41,8 +45,9 @@ class HomeController with ChangeNotifier {
 
   calculatePercent() {
     totalTasks = task.length;
-    doneTasks = task.where((e) => e.isDone).length;
-    percent = totalTasks == 0 ? 0 : doneTasks / totalTasks;
+    totalDoneTasks = task.where((e) => e.isDone).length;
+    percent = totalTasks == 0 ? 0 : totalDoneTasks / totalTasks;
+    notifyListeners();
   }
 
   doneTasks(bool? value, int? index) async {
@@ -51,6 +56,7 @@ class HomeController with ChangeNotifier {
 
     final updatedTak = task.map((element) => element.toJson()).toList();
     await PreferencesManager().setString('task', jsonEncode(updatedTak));
+    notifyListeners();
   }
 
   deleteTask(int? id) async {
@@ -61,5 +67,6 @@ class HomeController with ChangeNotifier {
     calculatePercent();
     final updatedTask = task.map((e) => e.toJson()).toList();
     await PreferencesManager().setString('task', jsonEncode(updatedTask));
+    notifyListeners();
   }
 }

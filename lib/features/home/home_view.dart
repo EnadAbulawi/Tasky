@@ -15,7 +15,7 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<HomeController>(
       create: (BuildContext context) => HomeController(),
-
+      // * create: (BuildContext context) => HomeController()..init(), // * this line to call init method after create instance from HomeController class
       child: Consumer<HomeController>(
         builder: (BuildContext context, HomeController value, Widget? child) {
           final HomeController controller = context.read<HomeController>();
@@ -73,7 +73,7 @@ class HomeView extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         AchievedTasksWidget(
-                          doneTasks: value.doneTasks,
+                          doneTasks: value.totalDoneTasks,
                           totalTasks: value.totalTasks,
                           percent: value.percent,
                         ),
