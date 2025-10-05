@@ -15,31 +15,31 @@ class PreferencesManager {
   PreferencesManager._internal();
 
   // ! Shared Preferences instance
-  late final SharedPreferences _preferance;
+  late final SharedPreferences _preference;
 
   // * Initialization method to be called once
   init() async {
-    _preferance = await SharedPreferences.getInstance();
+    _preference = await SharedPreferences.getInstance();
   }
 
   // * Methods to interact with SharedPreferences
   String? getString(String key) {
-    return _preferance.getString(key);
+    return _preference.getString(key);
   }
 
   Future<bool> setString(String key, String value) async {
-    return await _preferance.setString(key, value);
+    return await _preference.setString(key, value);
   }
 
   remove(String key) async {
-    await _preferance.remove(key);
+    await _preference.remove(key);
   }
 
   bool? getBool(String key) {
-    return _preferance.getBool(key);
+    return _preference.getBool(key);
   }
 
   Future<bool> setBool(String key, bool value) async {
-    return await _preferance.setBool(key, value);
+    return await _preference.setBool(key, value);
   }
 }

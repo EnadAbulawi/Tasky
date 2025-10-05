@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:tasky/views/complete_tasks_view.dart';
-import 'package:tasky/views/home_view.dart';
-import 'package:tasky/views/profile_view.dart';
-import 'package:tasky/views/tasks_view.dart';
+import 'package:tasky/features/tasks/complete_tasks_view.dart';
+import 'package:tasky/features/home/home_view.dart';
+import 'package:tasky/features/profile/profile_view.dart';
+import 'package:tasky/features/tasks/tasks_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -18,6 +18,17 @@ class _MainViewState extends State<MainView> {
     TasksView(),
     CompleteTasksView(),
     ProfileView(),
+    // MultiProvider(
+    //   providers: [
+    //     ChangeNotifierProvider<CounterController>(
+    //       create: (_) => CounterController(),
+    //     ),
+    //     ChangeNotifierProvider<ThemeController>(
+    //       create: (_) => ThemeController(),
+    //     ),
+    //   ],
+    //   child: ProviderEx(),
+    // ),
   ];
   int _currentIndex = 0;
   @override

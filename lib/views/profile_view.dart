@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tasky/core/constants/storage_key.dart';
 import 'package:tasky/core/services/preferences_manager.dart';
 import 'package:tasky/core/theme/theme_controller.dart';
 import 'package:tasky/core/widgets/custom_svg_picture.dart';
@@ -30,7 +31,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   void _loadData() async {
-    username = PreferencesManager().getString('username') ?? '';
+    username = PreferencesManager().getString(StorageKey.username) ?? '';
     motivationQuote =
         PreferencesManager().getString('motivation_quote') ??
         'One task at a time. One step closer.';
@@ -157,7 +158,7 @@ class _ProfileViewState extends State<ProfileView> {
                 Divider(),
                 ListTile(
                   onTap: () async {
-                    PreferencesManager().remove('username');
+                    PreferencesManager().remove(StorageKey.username);
                     PreferencesManager().remove('motivation_quote');
                     PreferencesManager().remove('task');
                     Navigator.pushAndRemoveUntil(

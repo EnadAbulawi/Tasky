@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:snackly/snackly.dart';
+import 'package:tasky/core/constants/storage_key.dart';
 import 'package:tasky/core/services/preferences_manager.dart';
 import 'package:tasky/core/widgets/custom_svg_picture.dart';
 import 'package:tasky/core/widgets/custom_text_form_field.dart';
@@ -102,7 +102,7 @@ class WelcomeView extends StatelessWidget {
 
                           if (_key.currentState?.validate() ?? false) {
                             await PreferencesManager().setString(
-                              'username',
+                              StorageKey.username,
                               userNameController.value.text,
                             );
 
